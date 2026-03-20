@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>The Curriculum · Kali</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #f5f0e8;
+    --ink2: #faf7f2;
+    --ink3: #e8e2d8;
+    --ink4: #ddd6c8;
+    --paper: #2a2520;
+    --silver: #4a4540;
+    --muted: #8a8480;
+    --red: #8b1a1a;
+    --red2: #6b1414;
+    --gold: #a8780b;
+    --gold2: #c8980b;
+    --safe: #d4edd4;
+    --safe2: #4a7a4a;
+    --safe3: #2a5a2a;
+    --blue: #ddeeff;
+    --blue2: #2a5a8c;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:var(--ink); color:var(--paper); font-family:'DM Mono',monospace; font-weight:400; font-size:16px; overflow:hidden; line-height:1.7; }
+
+  .app { display:flex; flex-direction:column; height:100dvh; max-width:500px; margin:0 auto; position:relative; }
+
+  /* TOPBAR */
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 20px 12px; border-bottom:1px solid var(--ink3); flex-shrink:0; box-shadow: 0 1px 0 var(--ink3); }
+  .topbar-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; }
+  .topbar-title span { font-style:italic; color:var(--muted); }
+  .topbar-right { text-align:right; }
+  .topbar-date { font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); line-height:1.6; }
+  .streak-badge { display:inline-flex; align-items:center; gap:4px; background:#fff8e8; border:1px solid var(--gold2); border-radius:20px; padding:3px 10px; font-size:0.6rem; color:var(--gold); margin-top:4px; }
+
+  /* SCROLL */
+  .scroll-area { flex:1; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; padding-bottom:84px; }
+  .scroll-area::-webkit-scrollbar { display:none; }
+
+  /* VIEWS */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* SECTION HEAD */
+  .section-head { padding:20px 20px 10px; font-size:0.78rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--red); }
+  .section-head.tight { padding-top:12px; }
+
+  /* CARDS */
+  .card { margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; overflow:hidden; }
+  .card-pad { padding:16px; }
+
+  /* ── TODAY ── */
+  .today-header { padding:22px 20px 16px; border-bottom:1px solid var(--ink3); }
+  .today-greeting { font-family:'Playfair Display',serif; font-style:italic; font-size:1.5rem; font-weight:400; color:var(--paper); line-height:1.3; margin-bottom:6px; }
+  .today-sub { font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); }
+
+  .mantra-wrap { overflow:hidden; padding:10px 0; border-bottom:1px solid var(--ink3); }
+  .mantra-scroll { white-space:nowrap; display:inline-block; font-family:'Playfair Display',serif; font-style:italic; font-size:0.78rem; color:var(--ink4); animation:scroll-left 20s linear infinite; }
+  .mantra-scroll b { color:var(--red); font-style:normal; font-weight:400; }
+  @keyframes scroll-left { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  .progress-summary { margin:14px 16px 0; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:18px; display:flex; align-items:center; gap:18px; }
+  .ring-wrap { position:relative; width:68px; height:68px; flex-shrink:0; }
+  .ring-wrap svg { transform:rotate(-90deg); }
+  .ring-track { fill:none; stroke:var(--ink3); stroke-width:5; }
+  .ring-fill { fill:none; stroke:var(--gold); stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset 0.6s ease; }
+  .ring-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; }
+  .progress-text h3 { font-family:'Playfair Display',serif; font-size:0.95rem; margin-bottom:4px; }
+  .progress-text p { font-size:0.78rem; color:var(--muted); line-height:1.7; }
+
+  /* HEATMAP */
+  .heatmap-wrap { margin:14px 16px 0; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:16px; }
+  .heatmap-label { font-size:0.78rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .heatmap-grid { display:flex; gap:4px; }
+  .heatmap-day { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .heatmap-dot { width:100%; aspect-ratio:1; border-radius:3px; background:var(--ink3); transition:background 0.2s; }
+  .heatmap-dot.done { background:var(--gold); }
+  .heatmap-dot.partial { background:var(--gold2); opacity:0.6; }
+  .heatmap-day-label { font-size:0.45rem; color:var(--muted); letter-spacing:0.05em; }
+
+  /* RITUAL CARD (today) */
+  .ritual-card { margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:14px 16px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; -webkit-user-select:none; }
+  .ritual-card:active { transform:scale(0.98); }
+  .ritual-card.done { opacity:0.5; }
+  .ritual-check { width:26px; height:26px; border-radius:50%; border:1.5px solid var(--muted); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .ritual-card.done .ritual-check { background:var(--safe); border-color:var(--safe2); }
+  .ritual-check .ck { display:none; }
+  .ritual-card.done .ritual-check .ck { display:block; }
+  .ritual-info { flex:1; }
+  .ritual-name { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; margin-bottom:3px; }
+  .ritual-time { font-size:0.56rem; color:var(--muted); }
+  .ritual-tag { font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; padding:3px 7px; border-radius:10px; background:var(--ink3); color:var(--muted); flex-shrink:0; }
+
+  /* TASK CARD */
+  .task-card { margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:13px 15px; display:flex; align-items:flex-start; gap:11px; cursor:pointer; transition:all 0.15s; -webkit-user-select:none; }
+  .task-card:active { transform:scale(0.98); }
+  .task-card.done { opacity:0.4; }
+  .task-card.done .task-title { text-decoration:line-through; }
+  .task-check { width:20px; height:20px; border-radius:4px; border:1.5px solid var(--muted); flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .task-card.done .task-check { background:var(--safe); border-color:var(--safe2); }
+  .task-check .ck { display:none; }
+  .task-card.done .task-check .ck { display:block; }
+  .task-body { flex:1; min-width:0; }
+  .task-module { font-size:0.6rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--red); margin-bottom:3px; }
+  .task-title { font-size:0.88rem; line-height:1.6; color:var(--paper); letter-spacing:0.01em; }
+
+  /* ADD TASK */
+  .add-task-row { margin:0 16px 8px; display:flex; gap:8px; }
+  .add-task-input { flex:1; background:#ffffff; border:1px solid var(--ink3); border-radius:10px; padding:10px 14px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.75rem; outline:none; }
+  .add-task-input::placeholder { color:var(--muted); }
+  .add-task-btn { background:var(--ink3); border:1px solid var(--muted); border-radius:10px; padding:10px 14px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.7rem; cursor:pointer; white-space:nowrap; }
+  .add-task-btn:active { background:var(--ink4); }
+
+  /* ── MODULES ── */
+  .module-card { margin:0 16px 10px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; overflow:hidden; }
+  .module-header { padding:16px; display:flex; gap:12px; align-items:flex-start; cursor:pointer; -webkit-user-select:none; }
+  .module-num { font-family:'Playfair Display',serif; font-size:1.7rem; font-weight:900; color:var(--ink3); line-height:1; flex-shrink:0; width:34px; }
+  .module-info { flex:1; }
+  .module-label { font-size:0.6rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--red); margin-bottom:3px; }
+  .module-title { font-family:'Playfair Display',serif; font-size:0.95rem; font-weight:700; line-height:1.2; margin-bottom:8px; }
+  .module-progress-bar { height:3px; background:var(--ink3); border-radius:2px; overflow:hidden; }
+  .module-progress-fill { height:100%; background:var(--gold); border-radius:2px; transition:width 0.4s ease; }
+  .module-pct { font-size:0.78rem; color:var(--muted); margin-top:4px; }
+  .module-chevron { color:var(--muted); transition:transform 0.2s; margin-top:4px; flex-shrink:0; }
+  .module-card.open .module-chevron { transform:rotate(180deg); }
+  .module-tasks { display:none; border-top:1px solid var(--ink3); padding:6px 0; }
+  .module-card.open .module-tasks { display:block; }
+  .module-task-item { padding:10px 16px 10px 62px; display:flex; align-items:flex-start; gap:10px; cursor:pointer; -webkit-user-select:none; transition:background 0.1s; }
+  .module-task-item:active { background:var(--ink3); }
+  .module-task-item.done .module-task-text { text-decoration:line-through; color:var(--muted); }
+  .module-task-box { width:17px; height:17px; border-radius:3px; border:1.5px solid var(--muted); flex-shrink:0; margin-top:2px; display:flex; align-items:center; justify-content:center; transition:all 0.2s; }
+  .module-task-item.done .module-task-box { background:var(--safe); border-color:var(--safe2); }
+  .module-task-box .ck { display:none; }
+  .module-task-item.done .module-task-box .ck { display:block; }
+  .module-task-text { font-size:0.82rem; line-height:1.7; color:var(--silver); }
+  .module-add-row { padding:8px 16px 8px 62px; display:flex; gap:6px; }
+  .module-add-input { flex:1; background:#ffffff; border:1px solid var(--ink3); border-radius:8px; padding:7px 10px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.7rem; outline:none; }
+  .module-add-input::placeholder { color:var(--muted); }
+  .module-add-btn { background:var(--ink4); border:1px solid var(--muted); border-radius:8px; padding:7px 12px; color:var(--silver); font-size:0.78rem; cursor:pointer; }
+
+  /* ── RITUALS FULL ── */
+  .ritual-full-card { margin:0 16px 10px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:18px; }
+  .ritual-full-day { font-size:0.6rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--red); margin-bottom:5px; }
+  .ritual-full-name { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; margin-bottom:6px; }
+  .ritual-full-desc { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:0.98rem; color:var(--silver); line-height:1.7; margin-bottom:8px; }
+  .ritual-full-meta { font-size:0.56rem; color:var(--muted); }
+  .ritual-full-btn { margin-top:12px; width:100%; padding:10px; background:var(--ink3); border:1px solid var(--muted); border-radius:8px; color:var(--paper); font-weight:500; font-family:'DM Mono',monospace; font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; }
+  .ritual-full-btn:active { transform:scale(0.99); }
+  .ritual-full-card.done .ritual-full-btn { background:var(--safe); border-color:var(--safe2); color:var(--safe3); }
+
+  /* ── READING ── */
+  .book-card { margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:16px; }
+  .book-status-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .book-type { font-size:0.6rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--red); }
+  .book-status-btn { display:flex; gap:4px; }
+  .bsb { font-size:0.6rem; padding:3px 8px; border-radius:8px; background:var(--ink3); border:1px solid var(--ink4); color:var(--muted); cursor:pointer; letter-spacing:0.08em; transition:all 0.15s; }
+  .bsb.active-want { background:var(--blue); border-color:var(--blue2); color:var(--blue2); }
+  .bsb.active-reading { background:var(--gold2); border-color:var(--gold); color:var(--gold); }
+  .bsb.active-done { background:var(--safe); border-color:var(--safe2); color:var(--safe3); }
+  .book-title { font-family:'Playfair Display',serif; font-style:italic; font-size:0.98rem; margin-bottom:2px; }
+  .book-author { font-size:0.68rem; color:var(--muted); margin-bottom:8px; }
+  .book-why { font-size:0.78rem; color:var(--muted); line-height:1.6; }
+
+  /* ── NORTH STAR ── */
+  .north-star-hero { margin:16px 16px 0; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:22px; }
+  .north-star-label { font-size:0.6rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--red); margin-bottom:10px; }
+  .north-star-quote { font-family:'Playfair Display',serif; font-style:italic; font-size:1.15rem; line-height:1.6; color:var(--silver); margin-bottom:16px; }
+  .north-star-section { border-top:1px solid var(--ink3); padding-top:14px; margin-top:14px; }
+  .north-star-section-label { font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .north-star-text { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1rem; color:var(--silver); line-height:1.8; }
+
+  /* ── CHART ── */
+  .chart-pill { margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:16px; }
+  .chart-planet { font-size:0.6rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--red); margin-bottom:4px; }
+  .chart-sign { font-family:'Playfair Display',serif; font-size:0.95rem; font-weight:700; margin-bottom:4px; }
+  .chart-meaning { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:0.98rem; color:var(--silver); line-height:1.8; margin-bottom:8px; }
+  .chart-lesson { font-size:0.6rem; color:var(--muted); line-height:1.5; }
+
+  /* ── JOURNAL ── */
+  .new-entry-area { margin:16px 16px 0; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; overflow:hidden; }
+  .new-entry-top { padding:11px 16px; border-bottom:1px solid var(--ink3); display:flex; justify-content:space-between; align-items:center; }
+  .new-entry-label { font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--red); }
+  .module-select { background:var(--ink3); border:1px solid var(--ink4); border-radius:6px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.78rem; padding:4px 8px; cursor:pointer; outline:none; }
+  .new-entry-input { width:100%; background:transparent; border:none; color:var(--paper); font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.05rem; padding:13px 16px; resize:none; outline:none; min-height:90px; line-height:1.8; }
+  .new-entry-input::placeholder { color:var(--muted); }
+  .new-entry-footer { padding:9px 16px; border-top:1px solid var(--ink3); display:flex; justify-content:flex-end; }
+  .save-btn { background:var(--red2); border:1px solid var(--red); border-radius:8px; color:var(--paper); font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; padding:7px 14px; cursor:pointer; }
+  .save-btn:active { transform:scale(0.97); }
+  .journal-entry { margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; overflow:hidden; }
+  .journal-entry-header { padding:10px 16px; border-bottom:1px solid var(--ink3); display:flex; justify-content:space-between; align-items:center; }
+  .journal-entry-date { font-size:0.78rem; color:var(--muted); }
+  .journal-entry-module { font-size:0.6rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--red); }
+  .journal-entry-text { padding:13px 16px; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:0.95rem; color:var(--silver); line-height:1.7; }
+  .journal-entry-del { padding:0 16px 10px; }
+  .del-btn { font-size:0.5rem; color:var(--muted); background:none; border:none; cursor:pointer; letter-spacing:0.1em; }
+
+  /* BOTTOM NAV */
+  .bottom-nav { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:500px; background:rgba(245,240,232,0.97); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--ink3); display:flex; padding-bottom:env(safe-area-inset-bottom,0); z-index:100; }
+  .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:9px 2px 11px; cursor:pointer; -webkit-user-select:none; gap:3px; border:none; background:none; color:var(--muted); transition:color 0.15s; }
+  .nav-btn.active { color:var(--paper); font-weight:500; }
+  .nav-btn:active { opacity:0.7; }
+  .nav-icon { font-size:1.1rem; line-height:1; }
+  .nav-label { font-size:0.44rem; letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* TOAST */
+  .toast { position:fixed; top:76px; left:50%; transform:translateX(-50%) translateY(-8px); background:#e8f4e8; border:1px solid var(--safe2); border-radius:20px; padding:7px 16px; font-size:0.68rem; letter-spacing:0.1em; color:var(--safe3); opacity:0; transition:all 0.25s; z-index:200; pointer-events:none; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .ck { width:10px; height:8px; }
+
+  /* ═══ GAMIFICATION ═══ */
+
+  /* XP BAR */
+  .xp-bar-wrap { margin:14px 16px 0; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; padding:14px 16px; }
+  .xp-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .xp-title { font-family:'Playfair Display',serif; font-size:0.9rem; font-weight:700; }
+  .xp-level { font-size:0.6rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); }
+  .xp-track { height:10px; background:var(--ink3); border-radius:6px; overflow:hidden; }
+  .xp-fill { height:100%; background:linear-gradient(90deg, var(--gold), var(--gold2)); border-radius:6px; transition:width 0.8s cubic-bezier(.34,1.56,.64,1); }
+  .xp-sub { display:flex; justify-content:space-between; margin-top:5px; font-size:0.6rem; color:var(--muted); }
+
+  /* CREATURE */
+  .creature-wrap { margin:14px 16px 0; background:var(--ink2); border:1px solid #d4c8b0; border-radius:20px; padding:16px 18px; display:flex; gap:16px; align-items:center; cursor:pointer; -webkit-user-select:none; transition:transform 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .creature-wrap:active { transform:scale(0.99); }
+  .creature-canvas { width:100px; height:100px; flex-shrink:0; position:relative; }
+  .creature-svg { width:100px; height:100px; }
+  .creature-body { transition:all 0.4s ease; }
+  .creature-info { flex:1; }
+  .creature-name { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:2px; color:var(--paper); }
+  .creature-mood { font-size:0.68rem; color:var(--muted); margin-bottom:8px; letter-spacing:0.04em; }
+  .creature-speech { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1rem; color:var(--paper); line-height:1.5; background:var(--ink3); border-radius:10px; padding:9px 12px; position:relative; }
+  .creature-speech::before { content:''; position:absolute; left:-8px; top:12px; border:4px solid transparent; border-right-color:var(--ink3); }
+
+  /* STATS ROW */
+  .stats-row { margin:10px 16px 0; display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .stat-card { background:var(--ink2); border:1px solid var(--ink3); border-radius:10px; padding:12px 10px; text-align:center; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; color:var(--red); line-height:1; }
+  .stat-label { font-size:0.5rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-top:3px; }
+
+  /* CONFETTI */
+  .confetti-piece { position:fixed; width:8px; height:8px; border-radius:2px; pointer-events:none; z-index:9999; animation:confetti-fall 1.2s ease-in forwards; }
+  @keyframes confetti-fall {
+    0% { transform:translateY(-20px) rotate(0deg); opacity:1; }
+    100% { transform:translateY(100vh) rotate(720deg); opacity:0; }
+  }
+
+  /* LEVEL UP FLASH */
+  .level-flash { position:fixed; inset:0; background:rgba(200,152,11,0.15); z-index:500; pointer-events:none; opacity:0; animation:flash 0.6s ease; }
+  @keyframes flash { 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
+
+  /* BADGE */
+  .badge-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.5); background:var(--ink2); border:2px solid var(--gold); border-radius:16px; padding:24px 32px; text-align:center; z-index:600; pointer-events:none; opacity:0; transition:all 0.4s cubic-bezier(.34,1.56,.64,1); }
+  .badge-popup.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  .badge-popup .badge-icon { font-size:2.5rem; margin-bottom:8px; }
+  .badge-popup .badge-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700; margin-bottom:4px; }
+  .badge-popup .badge-sub { font-size:0.65rem; color:var(--muted); }
+
+  /* CREATURE BOUNCE */
+  @keyframes creature-happy { 0%{transform:translateY(0) rotate(0deg)} 20%{transform:translateY(-8px) rotate(-3deg)} 40%{transform:translateY(0) rotate(3deg)} 60%{transform:translateY(-4px) rotate(-2deg)} 80%{transform:translateY(0) rotate(1deg)} 100%{transform:translateY(0) rotate(0deg)} }
+  .creature-bouncing { animation:creature-happy 0.5s ease; }
+
+  /* TITLE BADGE */
+  .title-badge { display:inline-block; background:#fff8e8; border:1px solid var(--gold2); border-radius:20px; padding:3px 12px; font-size:0.6rem; letter-spacing:0.1em; color:var(--gold); margin-left:8px; }
+
+  .empty-state { padding:20px; font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--muted); font-size:0.95rem; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-title">The <span>Curriculum</span></div>
+    <div class="topbar-right">
+      <div class="topbar-date" id="today-date"></div>
+      <div class="streak-badge" id="streak-badge">✦ <span id="streak-num">0</span> day streak</div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- TODAY -->
+    <div id="view-today" class="view active">
+      <div class="today-header">
+        <div class="today-greeting" id="greeting">Good morning, Kali.</div>
+        <div class="today-sub" id="day-label">Today's practice</div>
+      </div>
+      <div class="mantra-wrap">
+        <div class="mantra-scroll">Exposure Before Perfection &nbsp;<b>✦</b>&nbsp; The Darkroom Is Already Built &nbsp;<b>✦</b>&nbsp; Venus Rules Both Beauty and Value &nbsp;<b>✦</b>&nbsp; Distill The Signal &nbsp;<b>✦</b>&nbsp; Ship The Work &nbsp;<b>✦</b>&nbsp; Exposure Before Perfection &nbsp;<b>✦</b>&nbsp; The Darkroom Is Already Built &nbsp;<b>✦</b>&nbsp; Venus Rules Both Beauty and Value &nbsp;<b>✦</b>&nbsp; Distill The Signal &nbsp;<b>✦</b>&nbsp; Ship The Work &nbsp;<b>✦</b>&nbsp;</div>
+      </div>
+
+      <!-- CREATURE -->
+      <div class="creature-wrap" onclick="petCreature()" id="creature-wrap">
+        <div class="creature-canvas" id="creature-canvas">
+          <!-- Lumen SVG injected by JS -->
+        </div>
+        <div class="creature-info">
+          <div class="creature-name" id="creature-name">Lumen</div>
+          <div class="creature-mood" id="creature-mood">Your darkroom familiar ✦</div>
+          <div class="creature-speech" id="creature-speech">Open your app, I was starting to fade…</div>
+        </div>
+      </div>
+
+      <!-- XP BAR -->
+      <div class="xp-bar-wrap">
+        <div class="xp-top">
+          <div class="xp-title" id="xp-title-text">The Observer</div>
+          <div class="xp-level" id="xp-level-label">Level 1</div>
+        </div>
+        <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+        <div class="xp-sub"><span id="xp-cur">0 XP</span><span id="xp-next">100 XP to next level</span></div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-streak">0</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-tasks">0</div>
+          <div class="stat-label">Tasks Done</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-xp">0</div>
+          <div class="stat-label">Total XP</div>
+        </div>
+      </div>
+
+      <!-- PROGRESS RING -->
+      <div class="progress-summary">
+        <div class="ring-wrap">
+          <svg width="68" height="68" viewBox="0 0 68 68">
+            <circle class="ring-track" cx="34" cy="34" r="29"/>
+            <circle class="ring-fill" id="ring-fill" cx="34" cy="34" r="29" stroke-dasharray="182.2" stroke-dashoffset="182.2"/>
+          </svg>
+          <div class="ring-label" id="ring-pct">0%</div>
+        </div>
+        <div class="progress-text">
+          <h3>Today's Progress</h3>
+          <p id="progress-desc">Complete your rituals and tasks.</p>
+        </div>
+      </div>
+
+      <!-- HEATMAP -->
+      <div class="heatmap-wrap">
+        <div class="heatmap-label">Last 14 days</div>
+        <div class="heatmap-grid" id="heatmap"></div>
+      </div>
+
+      <div class="section-head tight">Today's Rituals</div>
+      <div id="today-rituals"></div>
+      <div class="section-head">Up Next</div>
+      <div id="today-tasks"></div>
+      <div class="section-head">Custom Task</div>
+      <div class="add-task-row">
+        <input class="add-task-input" id="custom-task-input" placeholder="Add your own task…" onkeydown="if(event.key==='Enter')addCustomTask()">
+        <button class="add-task-btn" onclick="addCustomTask()">+ Add</button>
+      </div>
+      <div id="custom-tasks-list"></div>
+      <div style="height:8px"></div>
+    </div>
+
+    <!-- MODULES -->
+    <div id="view-modules" class="view">
+      <div class="section-head" style="padding-top:22px">Six Modules</div>
+      <div id="modules-list"></div>
+    </div>
+
+    <!-- RITUALS -->
+    <div id="view-rituals" class="view">
+      <div class="section-head" style="padding-top:22px">Weekly Rituals</div>
+      <div id="rituals-list"></div>
+    </div>
+
+    <!-- READING -->
+    <div id="view-reading" class="view">
+      <div style="padding:22px 20px 14px; border-bottom:1px solid var(--ink3);">
+        <div style="font-size:0.6rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--red);margin-bottom:6px">The Reading List</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:6px">9 Books for This Chapter</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.9rem;color:var(--silver);line-height:1.6">Not a syllabus. A conversation between books that are already having the argument you're inside of. Track what you want to read, are reading, and have finished.</div>
+      </div>
+      <div style="height:8px"></div>
+      <div id="reading-list"></div>
+    </div>
+
+    <!-- NORTH STAR -->
+    <div id="view-north" class="view">
+      <div class="north-star-hero">
+        <div class="north-star-label">Section V · The North Star</div>
+        <div class="north-star-quote">"The image is latent before it is visible. The work exists before it is finished. Begin the development."</div>
+        <div style="font-size:0.78rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)">Kali · London · Venus DC Line</div>
+
+        <div class="north-star-section">
+          <div class="north-star-section-label">In 12 months</div>
+          <div class="north-star-text">Sixth Hand Studio has its first retained client. Your darkroom practice has produced one cohesive body of work — even if it's 20 prints. You've shown the film work somewhere, even if it's a small screening. You have a job or project that uses your full capacity, not just a part of it. You've been to Japan, or you have a date.</div>
+        </div>
+
+        <div class="north-star-section">
+          <div class="north-star-section-label">The pattern to break</div>
+          <div class="north-star-text">The thing that this curriculum is designed to interrupt is the loop where a plan is perfect and the execution hasn't started. You are not someone who lacks vision, skill, or taste. You are someone who needs a permission structure to begin. This is it. You have permission. The darkroom is already built.</div>
+        </div>
+
+        <div class="north-star-section">
+          <div class="north-star-section-label">Your chart in one sentence</div>
+          <div class="north-star-text">Libra Sun weighs everything beautifully, Cancer Moon archives everything emotionally, Aries Rising acts before the plan is ready, and Leo Venus needs to be witnessed. The tension between these four is not a problem to solve — it's the engine of your work.</div>
+        </div>
+      </div>
+
+      <div class="section-head">Your Mantras</div>
+      <div style="margin:0 16px 8px; background:var(--ink2); border:1px solid var(--ink3); border-radius:12px; overflow:hidden;">
+        <div id="mantras-list"></div>
+      </div>
+
+      <div class="section-head">Chart</div>
+      <div class="chart-pill">
+        <div class="chart-planet">Sun + Mercury · Libra</div>
+        <div class="chart-sign">The Aesthetic Mind</div>
+        <div class="chart-meaning">Your identity and intellect speak the same language: beauty, balance, and relentless weighing. You think through aesthetics, not just about them.</div>
+        <div class="chart-lesson">Lesson: Make the thing before it's balanced. Balance emerges from the work.</div>
+      </div>
+      <div class="chart-pill">
+        <div class="chart-planet">Moon · Cancer</div>
+        <div class="chart-sign">The Archive Keeper</div>
+        <div class="chart-meaning">You feel in layers and remember in layers. Photography and archival work aren't just careers — they're emotional metabolism. You process by preserving.</div>
+        <div class="chart-lesson">Lesson: The archive is not hoarding. It's how you make sense of being alive.</div>
+      </div>
+      <div class="chart-pill">
+        <div class="chart-planet">Ascendant + Mars · Aries</div>
+        <div class="chart-sign">The Hidden Engine</div>
+        <div class="chart-meaning">You appear bold and decisive to others even when internally still weighing. Mars conjunct your Ascendant means when you do move, you move fast and completely.</div>
+        <div class="chart-lesson">Lesson: Stop waiting for Libra's permission to act on Aries' instinct.</div>
+      </div>
+      <div class="chart-pill">
+        <div class="chart-planet">Venus · Leo</div>
+        <div class="chart-sign">The Performer's Eye</div>
+        <div class="chart-meaning">Leo Venus needs to be seen — not for vanity, but because visibility is generosity. Keeping work only for yourself works against your Venus.</div>
+        <div class="chart-lesson">Lesson: Publishing the work is an act of love, not ego.</div>
+      </div>
+      <div class="chart-pill">
+        <div class="chart-planet">Venus DC Line · Astrocartography</div>
+        <div class="chart-sign">London as Destiny</div>
+        <div class="chart-meaning">Your Leo Venus on the Descendant line runs through London. In London your Venus is fully activated — you draw the right collaborators, the right rooms.</div>
+        <div class="chart-lesson">Lesson: You didn't end up here. You were pulled here by your own chart.</div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+
+    <!-- JOURNAL -->
+    <div id="view-journal" class="view">
+      <div class="new-entry-area">
+        <div class="new-entry-top">
+          <div class="new-entry-label">New Entry</div>
+          <select class="module-select" id="journal-module-select">
+            <option value="General">General</option>
+            <option value="01 · Darkroom">01 · Darkroom Output</option>
+            <option value="02 · Studio">02 · Sixth Hand Studio</option>
+            <option value="03 · Film">03 · Experimental Film</option>
+            <option value="04 · OS">04 · Studio OS</option>
+            <option value="05 · Career">05 · Career</option>
+            <option value="06 · Aesthetics">06 · Aesthetics</option>
+          </select>
+        </div>
+        <textarea class="new-entry-input" id="journal-input" placeholder="What are you noticing, making, or moving through today…"></textarea>
+        <div class="new-entry-footer">
+          <button class="save-btn" onclick="saveJournalEntry()">Save Entry</button>
+        </div>
+      </div>
+      <div class="section-head" style="margin-top:6px">Previous Entries</div>
+      <div id="journal-entries"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="switchView('today',this)"><div class="nav-icon">◉</div><div class="nav-label">Today</div></button>
+  <button class="nav-btn" onclick="switchView('modules',this)"><div class="nav-icon">⊞</div><div class="nav-label">Modules</div></button>
+  <button class="nav-btn" onclick="switchView('rituals',this)"><div class="nav-icon">◌</div><div class="nav-label">Rituals</div></button>
+  <button class="nav-btn" onclick="switchView('reading',this)"><div class="nav-icon">☰</div><div class="nav-label">Reading</div></button>
+  <button class="nav-btn" onclick="switchView('north',this)"><div class="nav-icon">☽</div><div class="nav-label">North Star</div></button>
+  <button class="nav-btn" onclick="switchView('journal',this)"><div class="nav-icon">✎</div><div class="nav-label">Journal</div></button>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="badge-popup" id="badge-popup">
+  <div class="badge-icon" id="badge-icon">⭐</div>
+  <div class="badge-title" id="badge-title">New Title!</div>
+  <div class="badge-sub" id="badge-sub">You earned a new level</div>
+</div>
+<div class="level-flash" id="level-flash" style="display:none"></div>
+
+<svg style="display:none">
+  <symbol id="check" viewBox="0 0 10 8">
+    <polyline points="1,4 3.5,6.5 9,1" fill="none" stroke="#7ec87e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+</svg>
+
+<script>
+// ═══════════════════════════════
+// DATA
+// ═══════════════════════════════
+
+const MODULES = [
+  { id:'m1', num:'01', label:'Practice → Output', title:'The Discipline of the Latent Image',
+    tasks:['Complete one darkroom session (min. 3 finished prints)','Post one print to Patreon before editing it','Name your current archive — give it a working title','Research Stephen Shore\'s and Nan Goldin\'s edit philosophy'] },
+  { id:'m2', num:'02', label:'Business → Identity', title:'Building Sixth Hand Studio as a Body of Thought',
+    tasks:['Write the one-paragraph Sixth Hand Studio manifesto','Identify 3 past projects that can become case studies','Write a 150-word brief for each case study','Set one anchor rate and stop recalculating'] },
+  { id:'m3', num:'03', label:'Film → Alchemy', title:'Expired & Souped Film as a Creative Language',
+    tasks:['Shoot one roll of expired film with intention — document the stock, age, and conditions','Experiment with one new souping agent or combination and log the results','Build a reference log: film stocks, expiry dates, souping recipes, outcomes','Research photographers working with expired and alternative process film','Submit work from this practice to one open call, zine, or analogue platform','Source your next batch of expired stock — car boots, eBay, darkroom sales'] },
+  { id:'m4', num:'04', label:'Systems → Freedom', title:'The Studio OS: ADHD as Infrastructure',
+    tasks:['Define "minimum viable darkroom session" and write it on a card','Run weekly review for 4 consecutive weeks','Identify your 3 highest-friction transitions','Design a ritual for each friction point'] },
+  { id:'m5', num:'05', label:'Career → Leverage', title:'The Arts Administrator as Strategic Asset',
+    tasks:['Write the CV that leads with throughline not timeline','Research and list 5 target organisations with notes on their ops structure','Attend one Frieze / ICA / Serpentine / Whitechapel opening this month','Draft a speculative outreach letter to one gallery or studio','Follow up with one warm contact in the London arts sector','Apply to one open registrar, producer, or studio manager role','Book a coffee with someone already working in a role you want','Update LinkedIn to reflect Sixth Hand Studio positioning'] },
+  { id:'m6', num:'06', label:'Libra Rising · Venus Line', title:'Aesthetics as Epistemology',
+    tasks:['Visit one museum or gallery — solo, no phone for first 30 min','Keep image-response journal: one photo + 3 sentences weekly','Re-read Camera Lucida — locate your own punctum','Plan the Japan trip — give it a date, even a rough season'] },
+];
+
+const RITUALS = [
+  { id:'r1', day:'Monday', name:'The Week\'s Frame', duration:'20 min · Morning', desc:'A 20-minute Notion review. Three questions: What\'s in motion? What\'s stalled? What\'s one thing that moves something forward? That\'s it. No full planning session.' },
+  { id:'r2', day:'Tue or Wed', name:'Darkroom Window', duration:'2 hrs · Evening', desc:'Fixed 2-hour session. Enter with a defined intention (test strip, contact sheet, print a specific frame). Exit with at least one physical object.' },
+  { id:'r3', day:'Thursday', name:'Distill & Publish', duration:'45 min · Afternoon', desc:'One piece of content — Instagram, Patreon, or a Studio OS note. It doesn\'t need to be polished. It needs to be real. Shipping on a schedule removes the performance anxiety of choosing when.' },
+  { id:'r4', day:'Saturday', name:'The Solo Expedition', duration:'Half day · No agenda', desc:'One outing with intention: a gallery, a market, an independent bookshop, a neighbourhood you haven\'t shot in. Your eye needs feeding.' },
+  { id:'r5', day:'Sunday', name:'The Archive Review', duration:'30 min · Low light', desc:'Spend 30 minutes with your existing image archive. Not editing — looking. The project you\'re looking for is already in there.' },
+  { id:'r6', day:'Monthly', name:'The Long View', duration:'1 hr · First Sunday', desc:'Revisit your three active modules. What would the Kali who\'s one year further along do next? Write it down. This is your curriculum update — it changes as you do.' },
+];
+
+const BOOKS = [
+  { id:'b1', type:'Photography · Theory', title:'Camera Lucida', author:'Roland Barthes', why:'The punctum is the thing that arrests you in an image. Read it again and locate your own punctum — the thing your work keeps circling without naming.' },
+  { id:'b2', type:'ADHD · Systems', title:'How to Keep House While Drowning', author:'KC Davis', why:'Care tasks are morally neutral. This reframe is foundational before you build any more systems.' },
+  { id:'b3', type:'Creative Practice', title:'The Creative Habit', author:'Twyla Tharp', why:'Discipline as ritual, not willpower. Her box method for archiving process is directly adaptable to your Notion OS.' },
+  { id:'b4', type:'Creative Practice', title:'The War of Art', author:'Steven Pressfield', why:'Resistance is the specific name for what happens between your plan and your darkroom session. Name it and it loses power.' },
+  { id:'b5', type:'Photography · Culture', title:'On Photography', author:'Susan Sontag', why:'Still the sharpest critical lens on what photographs are doing in culture. Read with your own Instagram practice in mind.' },
+  { id:'b6', type:'Analogue Process', title:'The Negative', author:'Ansel Adams', why:'Adams on the expressive potential of the negative — foundational for understanding what you are working with and against when you shoot expired stock.' },
+  { id:'b7', type:'Astrology · Self-knowledge', title:'Saturn: A New Look at an Old Devil', author:'Liz Greene', why:'The definitive psychological astrology text on Saturn\'s role in adult development. Essential reading as you approach your second return.' },
+  { id:'b8', type:'Japan · Aesthetics', title:'In Praise of Shadows', author:'Jun\'ichirō Tanizaki', why:'A meditation on Japanese aesthetics and darkness. Eerily resonant with darkroom work. Will deepen your understanding of why Japan calls to you.' },
+  { id:'b9', type:'Career · Arts', title:'The Artist\'s Way', author:'Julia Cameron', why:'The morning pages practice is the one ADHD-compatible creative habit with a near-perfect compliance rate. Try it for three weeks before deciding.' },
+];
+
+const MANTRAS = [
+  'Exposure before perfection.',
+  'The darkroom is already built.',
+  'Venus rules both beauty and value.',
+  'Distill the signal.',
+  'Ship the work.',
+  'Stop waiting for Libra\'s permission to act on Aries\' instinct.',
+  'Publishing is an act of love, not ego.',
+  'The archive is how you make sense of being alive.',
+  'You don\'t resolve the axis. You make art inside it.',
+];
+
+
+// ═══════════════════════════════
+// GAMIFICATION
+// ═══════════════════════════════
+
+const XP_LEVELS = [
+  { xp:0,    level:1, title:'The Observer',     icon:'👁',  desc:"You've arrived. The darkroom door is open." },
+  { xp:100,  level:2, title:'The Practitioner', icon:'🧪',  desc:"You're showing up. The chemistry is working." },
+  { xp:250,  level:3, title:'The Alchemist',    icon:'✨',  desc:"You're transforming things. Film and life." },
+  { xp:500,  level:4, title:'The Maker',        icon:'📷',  desc:"You make work. Consistently. That's rare." },
+  { xp:900,  level:5, title:'The Archivist',    icon:'🗃',  desc:'You preserve what matters. Cancer Moon knows.' },
+  { xp:1400, level:6, title:'The Exhibitor',    icon:'🖼',  desc:'Leo Venus is satisfied. The work is seen.' },
+];
+
+const CREATURE_MOODS = {
+  thriving: {
+    speech: ["I'm GLOWING right now! 📸", 'Look at us! Actually doing the things!', 'I have been developed and I am GORGEOUS.', 'This is the best day. You showed up!', 'The fixer is working. We are permanent. ✦', 'My whiskers are literally vibrating with joy 🌟', "TASKS! Let's DO them! Paws up! 🐾"],
+    mouthD: '44,37 Q48,41 52,37',
+    eyeColor: '#f0b828',
+    eyeRy: 6.2,
+  },
+  happy: {
+    speech: ["Good to see you! Let's do this.", "I knew you'd come back 🌟", 'The image is developing nicely.', "One ritual at a time. You've got this.", "I've been waiting with good patience actually.", 'Hello hello hello! Tasks await 📷', 'Sitting here looking cute. As a service.'],
+    mouthD: '44,38 Q48,41.5 52,38',
+    eyeColor: '#d09818',
+    eyeRy: 5.5,
+  },
+  neutral: {
+    speech: ['Still here. Patient as a contact sheet.', 'No pressure. But I do miss you a bit 🐾', "I've been thinking about expired film…", 'The darkroom is still built, you know.', 'Just hanging out. Waiting for light.', '*stares at you with enormous amber eyes*', 'Loafing. It is what it is.'],
+    mouthD: '44,39 Q48,40.5 52,39',
+    eyeColor: '#b08010',
+    eyeRy: 4.2,
+  },
+  sad: {
+    speech: ['oh. you came back. I was fading a bit 🥺', 'I started to think I was unexposed forever…', "It's okay! You're here now. That's what matters.", 'I kept the fixer ready, just in case 🧡', "Welcome back. The streak resets but I don't.", 'tiny sad mew... 🥺', 'I curled up very small. For warmth.'],
+    mouthD: '43,52 Q47,49.5 51,52',
+    eyeColor: '#886005',
+    eyeRy: 3.2,
+  }
+};
+
+function getCreatureMood() {
+  const streak = state.streak || 0;
+  const ritualsDone = Object.values(state.ritualsDone).filter(Boolean).length;
+  const daysSinceActive = getDaysSinceActive();
+  if (daysSinceActive >= 3) return 'sad';
+  if (ritualsDone >= 3 || streak >= 5) return 'thriving';
+  if (ritualsDone >= 1 || streak >= 2) return 'happy';
+  if (daysSinceActive >= 1) return 'neutral';
+  return 'happy';
+}
+
+function getDaysSinceActive() {
+  if (!state.lastStreakDate) return 0;
+  const last = new Date(state.lastStreakDate);
+  const now = new Date();
+  return Math.floor((now - last) / (1000*60*60*24));
+}
+
+function getXPLevel(xp) {
+  let current = XP_LEVELS[0];
+  for (const lvl of XP_LEVELS) {
+    if (xp >= lvl.xp) current = lvl;
+    else break;
+  }
+  const nextIdx = XP_LEVELS.indexOf(current) + 1;
+  const next = XP_LEVELS[nextIdx] || null;
+  return { current, next };
+}
+
+function calcTotalXP() {
+  let xp = 0;
+  // tasks: 20xp each
+  Object.values(state.tasksDone).filter(Boolean).forEach(()=>xp+=20);
+  // rituals history: 15xp each
+  Object.values(state.history||{}).forEach(h=>{ xp += (h.rituals||0)*15; });
+  // today rituals: 15xp each
+  Object.values(state.ritualsDone).filter(Boolean).forEach(()=>xp+=15);
+  // streak bonus: 10xp per streak day
+  xp += (state.streak||0) * 10;
+  return xp;
+}
+
+// ── LUMEN SVG POSES ──
+// Each pose is a full SVG string. Ghibli-style: large expressive head,
+// simplified clean lines, dignified posture with secret softness.
+
+function luSVG(pose, eyeColor, eyeRy, mouthD, extras='', glowOp=0) {
+  // Shared reusable parts
+  const C = '#1a1818';    // main black
+  const CS = '#2d2a2a';   // soft shadow black
+  const PINK = '#e8a4b4';
+  const ew = eyeRy * 0.38; // pupil width based on eye openness
+
+  const glow = glowOp > 0 ? `
+    <defs><radialGradient id="gg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f0c040" stop-opacity="${glowOp}"/>
+      <stop offset="100%" stop-color="#f0c040" stop-opacity="0"/>
+    </radialGradient></defs>
+    <ellipse cx="48" cy="48" rx="44" ry="44" fill="url(#gg)"/>` : '';
+
+  const collar = `
+    <rect x="32" y="51.5" width="15" height="4" rx="2" fill="#c8a84b"/>
+    <rect x="37" y="50.5" width="5" height="2" rx="1" fill="#a8780a"/>
+    <circle cx="39.5" cy="53.5" r="1.2" fill="#f0d060"/>`;
+
+  const whiskers = (cx, side) => {
+    const dir = side === 'l' ? -1 : 1;
+    const ox = side === 'l' ? cx - 2 : cx + 2;
+    return `
+      <line x1="${ox}" y1="44" x2="${ox + dir*16}" y2="42.5" stroke="#666" stroke-width="0.7" stroke-linecap="round" opacity="0.55"/>
+      <line x1="${ox}" y1="46" x2="${ox + dir*17}" y2="46" stroke="#666" stroke-width="0.7" stroke-linecap="round" opacity="0.55"/>
+      <line x1="${ox}" y1="48" x2="${ox + dir*15}" y2="49.5" stroke="#666" stroke-width="0.7" stroke-linecap="round" opacity="0.55"/>`;
+  };
+
+  const eye = (cx, cy, ry) => {
+    const rx = ry * 1.15;
+    const pw = ry * 0.38;
+    return `
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${eyeColor}"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${pw}" ry="${ry*0.92}" fill="#100c0c"/>
+      <circle cx="${cx+rx*0.38}" cy="${cy - ry*0.35}" r="${ry*0.3}" fill="white"/>
+      <circle cx="${cx-rx*0.15}" cy="${cy + ry*0.28}" r="${ry*0.14}" fill="white" opacity="0.7"/>`;
+  };
+
+  const nose = (cx, cy) => `
+    <path d="M${cx-1.8},${cy+1} L${cx},${cy-0.5} L${cx+1.8},${cy+1} Q${cx},${cy+3} ${cx-1.8},${cy+1} Z" fill="${PINK}"/>`;
+
+  // ── POSE: sitting upright (happy/thriving) ──
+  if (pose === 'sitting') return `<svg viewBox="0 0 96 96" class="creature-svg" id="creature-svg">
+    ${glow}
+    <!-- tail wraps around -->
+    <path d="M65,80 Q82,72 80,54 Q78,40 70,42" fill="none" stroke="${C}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M65,80 Q82,72 80,54 Q78,40 70,42" fill="none" stroke="${CS}" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- body -->
+    <ellipse cx="48" cy="70" rx="22" ry="19" fill="${C}"/>
+    <!-- tummy highlight -->
+    <ellipse cx="48" cy="73" rx="11" ry="10" fill="${CS}" opacity="0.6"/>
+    <!-- front paws tucked -->
+    <ellipse cx="37" cy="83" rx="8" ry="5" fill="${C}"/>
+    <ellipse cx="57" cy="83" rx="8" ry="5" fill="${C}"/>
+    <!-- paw toes -->
+    <line x1="33" y1="86" x2="33" y2="87.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="37" y1="87" x2="37" y2="88.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="41" y1="86" x2="41" y2="87.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="53" y1="86" x2="53" y2="87.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="57" y1="87" x2="57" y2="88.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="61" y1="86" x2="61" y2="87.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- neck -->
+    <ellipse cx="48" cy="52" rx="13" ry="7" fill="${C}"/>
+    ${collar}
+    <!-- head — large, slightly tilted right with happiness -->
+    <ellipse cx="49" cy="34" rx="22" ry="21" fill="${C}"/>
+    <!-- ears pointy ghibli style -->
+    <polygon points="28,22 33,4 41,20" fill="${C}"/>
+    <polygon points="70,22 63,4 55,20" fill="${C}"/>
+    <polygon points="30,20 34,8 40,19" fill="#3d1a2a" opacity="0.5"/>
+    <polygon points="68,20 62,8 56,19" fill="#3d1a2a" opacity="0.5"/>
+    <!-- eyes open wide — thriving/happy -->
+    ${eye(39, 33, eyeRy)}
+    ${eye(59, 33, eyeRy)}
+    ${nose(49, 41)}
+    <!-- mouth -->
+    <path d="M${mouthD}" fill="none" stroke="${PINK}" stroke-width="1.3" stroke-linecap="round"/>
+    ${whiskers(40, 'l')}
+    ${whiskers(58, 'r')}
+    ${extras}
+  </svg>`;
+
+  // ── POSE: loaf (neutral — compact, dignified, waiting) ──
+  if (pose === 'loaf') return `<svg viewBox="0 0 96 96" class="creature-svg" id="creature-svg">
+    ${glow}
+    <!-- tail tip visible at side -->
+    <path d="M72,76 Q84,68 80,58" fill="none" stroke="${C}" stroke-width="6" stroke-linecap="round"/>
+    <!-- loaf body — paws tucked under -->
+    <ellipse cx="48" cy="72" rx="26" ry="16" fill="${C}"/>
+    <ellipse cx="48" cy="74" rx="18" ry="9" fill="${CS}" opacity="0.4"/>
+    <!-- front edge of paws just visible -->
+    <ellipse cx="34" cy="79" rx="7" ry="4" fill="${C}"/>
+    <ellipse cx="62" cy="79" rx="7" ry="4" fill="${C}"/>
+    <!-- neck short -->
+    <ellipse cx="48" cy="57" rx="14" ry="8" fill="${C}"/>
+    ${collar}
+    <!-- head — slightly lowered, watchful -->
+    <ellipse cx="48" cy="38" rx="22" ry="20" fill="${C}"/>
+    <!-- ears slightly back — neutral alert -->
+    <polygon points="27,25 31,7 40,22" fill="${C}"/>
+    <polygon points="69,25 65,7 56,22" fill="${C}"/>
+    <polygon points="29,23 32,10 39,21" fill="#2a1520" opacity="0.5"/>
+    <polygon points="67,23 64,10 57,21" fill="#2a1520" opacity="0.5"/>
+    <!-- eyes half-lidded — loaf mode -->
+    ${eye(38, 37, eyeRy)}
+    ${eye(58, 37, eyeRy)}
+    ${nose(48, 44)}
+    <path d="M${mouthD}" fill="none" stroke="${PINK}" stroke-width="1.2" stroke-linecap="round"/>
+    ${whiskers(39, 'l')}
+    ${whiskers(57, 'r')}
+    ${extras}
+  </svg>`;
+
+  // ── POSE: curled up sleeping / sad ──
+  if (pose === 'curled') return `<svg viewBox="0 0 96 96" class="creature-svg" id="creature-svg">
+    ${glow}
+    <!-- big curled body -->
+    <path d="M22,72 Q18,48 30,36 Q44,24 60,30 Q76,36 74,54 Q72,72 54,78 Q36,84 22,72 Z" fill="${C}"/>
+    <!-- inner fur shadow -->
+    <path d="M30,68 Q26,52 36,42 Q48,32 60,38 Q70,44 68,58 Q66,70 52,74 Z" fill="${CS}" opacity="0.45"/>
+    <!-- tail wraps tight around -->
+    <path d="M54,78 Q70,82 76,70 Q80,58 72,52" fill="none" stroke="${C}" stroke-width="8" stroke-linecap="round"/>
+    <path d="M54,78 Q70,82 76,70 Q80,58 72,52" fill="none" stroke="${CS}" stroke-width="4" stroke-linecap="round"/>
+    <!-- fluffy tail tip -->
+    <ellipse cx="73" cy="51" rx="6" ry="5" fill="${C}"/>
+    <!-- tiny paw peeking -->
+    <ellipse cx="30" cy="75" rx="7" ry="4" fill="${C}"/>
+    <!-- head tucked down and to side -->
+    <ellipse cx="38" cy="44" rx="20" ry="19" fill="${C}"/>
+    <!-- one ear up, one folded -->
+    <polygon points="20,33 24,16 33,30" fill="${C}"/>
+    <polygon points="22,31 25,18 32,29" fill="#2a1520" opacity="0.5"/>
+    <!-- folded ear -->
+    <path d="M51,27 Q58,18 62,26" fill="${C}" stroke="${CS}" stroke-width="1"/>
+    ${collar}
+    <!-- closed / sad eyes -->
+    ${eye(30, 43, eyeRy)}
+    ${eye(46, 41, eyeRy)}
+    ${nose(38, 49)}
+    <path d="M${mouthD}" fill="none" stroke="${PINK}" stroke-width="1.2" stroke-linecap="round"/>
+    ${whiskers(31, 'l')}
+    ${whiskers(45, 'r')}
+    ${extras}
+  </svg>`;
+
+  // ── POSE: standing / excited — front paws up ──
+  if (pose === 'excited') return `<svg viewBox="0 0 96 96" class="creature-svg" id="creature-svg">
+    ${glow}
+    <!-- tail straight up with curl at top — excitement! -->
+    <path d="M62,74 Q68,58 64,44 Q62,34 68,26" fill="none" stroke="${C}" stroke-width="7" stroke-linecap="round"/>
+    <path d="M62,74 Q68,58 64,44 Q62,34 68,26" fill="none" stroke="${CS}" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- tail curl tip -->
+    <path d="M68,26 Q74,20 70,16 Q66,12 64,18" fill="none" stroke="${C}" stroke-width="5" stroke-linecap="round"/>
+    <!-- body -->
+    <ellipse cx="44" cy="68" rx="19" ry="17" fill="${C}"/>
+    <ellipse cx="44" cy="71" rx="10" ry="9" fill="${CS}" opacity="0.5"/>
+    <!-- back legs -->
+    <ellipse cx="34" cy="82" rx="7" ry="4.5" fill="${C}"/>
+    <ellipse cx="54" cy="82" rx="7" ry="4.5" fill="${C}"/>
+    <!-- front paws raised up! -->
+    <path d="M34,64 Q26,54 24,44 Q24,40 28,42" fill="none" stroke="${C}" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="27" cy="42" rx="6" ry="5" fill="${C}"/>
+    <path d="M54,64 Q60,52 60,43 Q60,39 56,41" fill="none" stroke="${C}" stroke-width="9" stroke-linecap="round"/>
+    <ellipse cx="57" cy="41" rx="6" ry="5" fill="${C}"/>
+    <!-- paw toes on raised paws -->
+    <line x1="23" y1="40" x2="22" y2="38" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="27" y1="38.5" x2="27" y2="36.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="31" y1="40" x2="32" y2="38" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="53" y1="40" x2="52" y2="38" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="57" y1="38.5" x2="57" y2="36.5" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="61" y1="40" x2="62" y2="38" stroke="${CS}" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- neck -->
+    <ellipse cx="44" cy="52" rx="12" ry="7" fill="${C}"/>
+    ${collar}
+    <!-- head tilted with excitement -->
+    <ellipse cx="43" cy="32" rx="21" ry="20" fill="${C}"/>
+    <!-- ears perked forward -->
+    <polygon points="23,20 28,3 37,18" fill="${C}"/>
+    <polygon points="63,20 58,3 50,18" fill="${C}"/>
+    <polygon points="25,18 29,6 36,17" fill="#3d1a2a" opacity="0.5"/>
+    <polygon points="61,18 57,6 51,17" fill="#3d1a2a" opacity="0.5"/>
+    <!-- big wide excited eyes -->
+    ${eye(33, 31, eyeRy)}
+    ${eye(53, 31, eyeRy)}
+    ${nose(43, 39)}
+    <path d="M${mouthD}" fill="none" stroke="${PINK}" stroke-width="1.3" stroke-linecap="round"/>
+    ${whiskers(34, 'l')}
+    ${whiskers(52, 'r')}
+    ${extras}
+  </svg>`;
+
+  return '';
+}
+
+function renderCreature() {
+  const mood = getCreatureMood();
+  const m = CREATURE_MOODS[mood];
+  const speech = m.speech[Math.floor(Math.random() * m.speech.length)];
+
+  // Map mood to pose
+  const poseMap = { thriving:'excited', happy:'sitting', neutral:'loaf', sad:'curled' };
+  const pose = poseMap[mood];
+
+  // Sparkles for thriving
+  let extras = '';
+  if (mood === 'thriving') {
+    extras = `
+      <text x="8" y="28" font-size="11" opacity="0.8">✦</text>
+      <text x="76" y="22" font-size="8" opacity="0.7">✦</text>
+      <text x="14" y="55" font-size="7" opacity="0.6">·</text>`;
+  }
+  if (mood === 'sad') {
+    extras = `
+      <text x="52" y="30" font-size="9" opacity="0.5">·</text>
+      <text x="20" y="28" font-size="7" opacity="0.4">·</text>`;
+  }
+
+  const svgStr = luSVG(pose, m.eyeColor, m.eyeRy, m.mouthD, extras, mood==='thriving' ? 0.25 : 0);
+  document.getElementById('creature-canvas').innerHTML = svgStr;
+
+  document.getElementById('creature-speech').textContent = speech;
+  document.getElementById('creature-mood').textContent =
+    mood==='thriving' ? '✨ Glowing · Fully developed' :
+    mood==='happy'    ? '🌟 Happy · In good light' :
+    mood==='neutral'  ? '🐾 Patient · Waiting for light' :
+                        '🥺 Fading · Needs you here';
+}
+
+function petCreature() {
+  const wrap = document.getElementById('creature-wrap');
+  wrap.classList.remove('creature-bouncing');
+  void wrap.offsetWidth;
+  wrap.classList.add('creature-bouncing');
+  const speeches = ['Hehe! 🐾', 'That tickles!', '♡', 'Again! Again!', 'I love it here 🌟', 'purrr', '*kneads the air*', 'mrrp?', '✦', 'okay but one more time'];
+  document.getElementById('creature-speech').textContent = speeches[Math.floor(Math.random()*speeches.length)];
+  setTimeout(()=>{ wrap.classList.remove('creature-bouncing'); }, 600);
+}
+
+function renderXP() {
+  const totalXP = calcTotalXP();
+  state.totalXP = totalXP;
+  const { current, next } = getXPLevel(totalXP);
+  const prevLevel = state.lastLevel || 1;
+
+  document.getElementById('xp-title-text').textContent = current.title;
+  document.getElementById('xp-level-label').textContent = 'Level ' + current.level;
+  document.getElementById('xp-cur').textContent = totalXP + ' XP';
+  document.getElementById('stat-xp').textContent = totalXP;
+  document.getElementById('stat-streak').textContent = state.streak || 0;
+
+  // Count total tasks done
+  let taskCount = Object.values(state.tasksDone).filter(Boolean).length;
+  document.getElementById('stat-tasks').textContent = taskCount;
+
+  // XP bar fill
+  if (next) {
+    const range = next.xp - current.xp;
+    const progress = totalXP - current.xp;
+    const pct = Math.min(100, Math.round(progress / range * 100));
+    document.getElementById('xp-fill').style.width = pct + '%';
+    document.getElementById('xp-next').textContent = (next.xp - totalXP) + ' XP to ' + next.title;
+  } else {
+    document.getElementById('xp-fill').style.width = '100%';
+    document.getElementById('xp-next').textContent = 'Max level reached! ✦';
+  }
+
+  // Level up?
+  if (current.level > prevLevel && prevLevel > 0) {
+    state.lastLevel = current.level;
+    saveState();
+    setTimeout(()=>showLevelUp(current), 400);
+  } else if (!state.lastLevel) {
+    state.lastLevel = current.level;
+    saveState();
+  }
+
+  // Streak badge in topbar
+  document.getElementById('streak-num').textContent = state.streak || 0;
+}
+
+function showLevelUp(level) {
+  triggerConfetti(60);
+  const flash = document.getElementById('level-flash');
+  flash.style.display = 'block';
+  setTimeout(()=>flash.style.display='none', 700);
+
+  const popup = document.getElementById('badge-popup');
+  document.getElementById('badge-icon').textContent = level.icon;
+  document.getElementById('badge-title').textContent = level.title;
+  document.getElementById('badge-sub').textContent = level.desc;
+  popup.classList.add('show');
+  setTimeout(()=>popup.classList.remove('show'), 3000);
+}
+
+function triggerConfetti(count=30) {
+  const colours = ['#c8a84b','#8b1a1a','#4a7a4a','#2a5a8c','#e8a0a0','#a0c8a0','#f0d080'];
+  for (let i=0; i<count; i++) {
+    setTimeout(()=>{
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random()*100+'vw';
+      el.style.top = '-10px';
+      el.style.background = colours[Math.floor(Math.random()*colours.length)];
+      el.style.animationDuration = (0.8 + Math.random()*0.8)+'s';
+      el.style.animationDelay = Math.random()*0.4+'s';
+      el.style.borderRadius = Math.random()>0.5 ? '50%' : '2px';
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(), 2000);
+    }, i*30);
+  }
+}
+
+// ═══════════════════════════════
+// STATE
+// ═══════════════════════════════
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('kali-v2') || '{}'); } catch { return {}; }
+}
+function saveState() {
+  localStorage.setItem('kali-v2', JSON.stringify(state));
+}
+
+let state = loadState();
+if (!state.tasksDone)     state.tasksDone = {};
+if (!state.ritualsDone)   state.ritualsDone = {};
+if (!state.bookStatus)    state.bookStatus = {};
+if (!state.journalEntries) state.journalEntries = [];
+if (!state.customTasks)   state.customTasks = [];
+if (!state.streak)        state.streak = 0;
+if (!state.lastStreakDate) state.lastStreakDate = '';
+if (!state.history)       state.history = {};
+if (!state.lastReset)     state.lastReset = todayKey();
+if (!state.customModuleTasks) state.customModuleTasks = {};
+
+function todayKey() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function checkDailyReset() {
+  const today = todayKey();
+  if (state.lastReset !== today) {
+    const ritualsDoneCount = Object.values(state.ritualsDone).filter(Boolean).length;
+    if (ritualsDoneCount > 0) {
+      state.history[state.lastReset] = { rituals: ritualsDoneCount };
+      const prev = new Date(today); prev.setDate(prev.getDate()-1);
+      const prevKey = prev.toISOString().slice(0,10);
+      if (state.lastStreakDate === prevKey || state.lastStreakDate === '') {
+        state.streak = (state.streak||0) + 1;
+      } else {
+        state.streak = 1;
+      }
+      state.lastStreakDate = state.lastReset;
+    } else if (state.lastReset) {
+      // missed day — only reset streak if gap > 1 day
+      const prev = new Date(today); prev.setDate(prev.getDate()-1);
+      if (state.lastStreakDate !== prev.toISOString().slice(0,10)) {
+        state.streak = 0;
+      }
+    }
+    state.ritualsDone = {};
+    state.lastReset = today;
+    saveState();
+  }
+}
+
+// ═══════════════════════════════
+// HELPERS
+// ═══════════════════════════════
+
+function ckSVG() {
+  return `<svg class="ck" viewBox="0 0 10 8"><use href="#check"/></svg>`;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+function calcOverallProgress() {
+  const totalRituals = RITUALS.length;
+  const doneRituals = Object.values(state.ritualsDone).filter(Boolean).length;
+  let totalTasks = MODULES.reduce((s,m)=>s+m.tasks.length,0);
+  let doneTasks = 0;
+  MODULES.forEach(m => {
+    m.tasks.forEach((_,i) => { if(state.tasksDone[`${m.id}-${i}`]) doneTasks++; });
+    const custom = state.customModuleTasks[m.id]||[];
+    totalTasks += custom.length;
+    custom.forEach((_,i) => { if(state.tasksDone[`${m.id}-c${i}`]) doneTasks++; });
+  });
+  const total = totalRituals + totalTasks;
+  const done = doneRituals + doneTasks;
+  return total > 0 ? Math.round(done/total*100) : 0;
+}
+
+function updateRing() {
+  const pct = calcOverallProgress();
+  const circ = 182.2;
+  const fill = document.getElementById('ring-fill');
+  if (fill) fill.style.strokeDashoffset = circ - (circ * pct / 100);
+  const lbl = document.getElementById('ring-pct');
+  if (lbl) lbl.textContent = pct+'%';
+  const desc = document.getElementById('progress-desc');
+  if (desc) {
+    if (pct===0) desc.textContent='Complete your rituals and tasks.';
+    else if (pct<30) desc.textContent='You\'ve started. Keep going.';
+    else if (pct<60) desc.textContent='Good. The latent image is developing.';
+    else if (pct<90) desc.textContent='Almost there. The work is showing.';
+    else desc.textContent='Full exposure. The print is made. ✦';
+  }
+}
+
+// ═══════════════════════════════
+// TODAY
+// ═══════════════════════════════
+
+function renderToday() {
+  const h = new Date().getHours();
+  document.getElementById('greeting').textContent =
+    h<12 ? 'Good morning, Kali.' : h<17 ? 'Good afternoon, Kali.' : 'Good evening, Kali.';
+
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now = new Date();
+  document.getElementById('today-date').innerHTML = `${days[now.getDay()]}<br>${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('day-label').textContent = `${days[now.getDay()]} · Today's practice`;
+
+  // Streak
+  document.getElementById('streak-num').textContent = state.streak || 0;
+
+  // Heatmap (last 14 days)
+  const heatmap = document.getElementById('heatmap');
+  heatmap.innerHTML = '';
+  const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  for (let i=13; i>=0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const key = d.toISOString().slice(0,10);
+    const hist = state.history[key];
+    const isToday = key === todayKey();
+    const todayDone = Object.values(state.ritualsDone).filter(Boolean).length;
+    let cls = '';
+    if (isToday && todayDone>0) cls = todayDone>=3?'done':'partial';
+    else if (hist && hist.rituals>=3) cls='done';
+    else if (hist && hist.rituals>0) cls='partial';
+    const col = document.createElement('div');
+    col.className = 'heatmap-day';
+    col.innerHTML = `<div class="heatmap-dot ${cls}"></div><div class="heatmap-day-label">${dayNames[d.getDay()]}</div>`;
+    heatmap.appendChild(col);
+  }
+
+  // Today rituals
+  const dayName = days[now.getDay()];
+  const ritualsCont = document.getElementById('today-rituals');
+  ritualsCont.innerHTML = '';
+  const todayRituals = RITUALS.filter(r => {
+    if (r.day==='Monthly') return now.getDate()<=7 && now.getDay()===0;
+    if (r.day==='Tue or Wed') return dayName==='Tuesday'||dayName==='Wednesday';
+    return r.day===dayName;
+  });
+  const showR = todayRituals.length>0 ? todayRituals : RITUALS.slice(0,2);
+  showR.forEach(r => {
+    const done = !!state.ritualsDone[r.id];
+    const el = document.createElement('div');
+    el.className = 'ritual-card'+(done?' done':'');
+    el.onclick = () => toggleRitual(r.id);
+    el.innerHTML = `<div class="ritual-check">${done?ckSVG():''}</div><div class="ritual-info"><div class="ritual-name">${r.name}</div><div class="ritual-time">${r.duration}</div></div><div class="ritual-tag">${r.day}</div>`;
+    ritualsCont.appendChild(el);
+  });
+
+  // Next tasks (up to 4 undone)
+  const tasksCont = document.getElementById('today-tasks');
+  tasksCont.innerHTML = '';
+  const undone = [];
+  MODULES.forEach(m => {
+    m.tasks.forEach((t,i) => {
+      const key=`${m.id}-${i}`;
+      if (!state.tasksDone[key]) undone.push({m,t,key});
+    });
+    (state.customModuleTasks[m.id]||[]).forEach((t,i) => {
+      const key=`${m.id}-c${i}`;
+      if (!state.tasksDone[key]) undone.push({m,t,key});
+    });
+  });
+  undone.slice(0,4).forEach(({m,t,key}) => {
+    const el = document.createElement('div');
+    el.className = 'task-card';
+    el.onclick = () => { state.tasksDone[key]=!state.tasksDone[key]; saveState(); if(state.tasksDone[key]){ showToast('Task done +20 XP ✦'); triggerConfetti(12); } renderToday(); };
+    el.innerHTML = `<div class="task-check">${ckSVG()}</div><div class="task-body"><div class="task-module">${m.label}</div><div class="task-title">${t}</div></div>`;
+    tasksCont.appendChild(el);
+  });
+  if (undone.length===0) tasksCont.innerHTML = '<div class="empty-state">All tasks complete. The print is made. ✦</div>';
+
+  // Custom tasks
+  renderCustomTasks();
+  updateRing();
+  renderCreature();
+  renderXP();
+}
+
+function toggleRitual(id) {
+  state.ritualsDone[id] = !state.ritualsDone[id];
+  saveState();
+  if(state.ritualsDone[id]) {
+    showToast('Ritual complete +15 XP ✦');
+    triggerConfetti(18);
+  }
+  renderToday();
+}
+
+function addCustomTask() {
+  const inp = document.getElementById('custom-task-input');
+  const val = inp.value.trim();
+  if (!val) return;
+  state.customTasks.push({text:val, done:false, id: Date.now()});
+  saveState();
+  inp.value = '';
+  renderCustomTasks();
+}
+
+function renderCustomTasks() {
+  const cont = document.getElementById('custom-tasks-list');
+  cont.innerHTML = '';
+  state.customTasks.forEach((t,i) => {
+    const el = document.createElement('div');
+    el.className = 'task-card'+(t.done?' done':'');
+    el.innerHTML = `<div class="task-check">${ckSVG()}</div><div class="task-body"><div class="task-module">Custom</div><div class="task-title">${t.text}</div></div>`;
+    el.onclick = () => { state.customTasks[i].done=!state.customTasks[i].done; saveState(); renderCustomTasks(); updateRing(); };
+    cont.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════
+// MODULES
+// ═══════════════════════════════
+
+function renderModules() {
+  const cont = document.getElementById('modules-list');
+  cont.innerHTML = '';
+  MODULES.forEach(m => {
+    const builtIn = m.tasks.length;
+    const custom = (state.customModuleTasks[m.id]||[]);
+    const total = builtIn + custom.length;
+    let done = m.tasks.filter((_,i)=>state.tasksDone[`${m.id}-${i}`]).length;
+    done += custom.filter((_,i)=>state.tasksDone[`${m.id}-c${i}`]).length;
+    const pct = total>0 ? Math.round(done/total*100) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'module-card';
+
+    const builtInHTML = m.tasks.map((t,i)=>{
+      const key=`${m.id}-${i}`;
+      const d=!!state.tasksDone[key];
+      return `<div class="module-task-item${d?' done':''}" data-key="${key}" data-type="builtin">
+        <div class="module-task-box">${ckSVG()}</div>
+        <div class="module-task-text">${t}</div>
+      </div>`;
+    }).join('');
+
+    const customHTML = custom.map((t,i)=>{
+      const key=`${m.id}-c${i}`;
+      const d=!!state.tasksDone[key];
+      return `<div class="module-task-item${d?' done':''}" data-key="${key}" data-type="custom">
+        <div class="module-task-box">${ckSVG()}</div>
+        <div class="module-task-text">${t}</div>
+      </div>`;
+    }).join('');
+
+    card.innerHTML = `
+      <div class="module-header">
+        <div class="module-num">${m.num}</div>
+        <div class="module-info">
+          <div class="module-label">${m.label}</div>
+          <div class="module-title">${m.title}</div>
+          <div class="module-progress-bar"><div class="module-progress-fill" style="width:${pct}%"></div></div>
+          <div class="module-pct">${done}/${total} tasks · ${pct}%</div>
+        </div>
+        <div class="module-chevron"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><polyline points="4,6 8,10 12,6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </div>
+      <div class="module-tasks">
+        ${builtInHTML}${customHTML}
+        <div class="module-add-row">
+          <input class="module-add-input" placeholder="Add a task…" onkeydown="if(event.key==='Enter')addModuleTask('${m.id}',this)">
+          <button class="module-add-btn" onclick="addModuleTask('${m.id}',this.previousElementSibling)">+</button>
+        </div>
+      </div>`;
+
+    card.querySelector('.module-header').onclick = () => { card.classList.toggle('open'); };
+    card.querySelectorAll('.module-task-item').forEach(item => {
+      item.onclick = (e) => {
+        e.stopPropagation();
+        const key = item.dataset.key;
+        state.tasksDone[key] = !state.tasksDone[key];
+        saveState();
+        if(state.tasksDone[key]) { showToast('Task done +20 XP ✦'); triggerConfetti(12); }
+        renderModules(); renderXP();
+      };
+    });
+    cont.appendChild(card);
+  });
+}
+
+function addModuleTask(moduleId, input) {
+  const val = input.value.trim();
+  if (!val) return;
+  if (!state.customModuleTasks[moduleId]) state.customModuleTasks[moduleId] = [];
+  state.customModuleTasks[moduleId].push(val);
+  saveState();
+  input.value = '';
+  renderModules();
+}
+
+// ═══════════════════════════════
+// RITUALS
+// ═══════════════════════════════
+
+function renderRituals() {
+  const cont = document.getElementById('rituals-list');
+  cont.innerHTML = '';
+  RITUALS.forEach(r => {
+    const done = !!state.ritualsDone[r.id];
+    const card = document.createElement('div');
+    card.className = 'ritual-full-card'+(done?' done':'');
+    card.innerHTML = `
+      <div class="ritual-full-day">${r.day}</div>
+      <div class="ritual-full-name">${r.name}</div>
+      <div class="ritual-full-desc">${r.desc}</div>
+      <div class="ritual-full-meta">${r.duration}</div>
+      <button class="ritual-full-btn" onclick="toggleRitualFull('${r.id}',this.parentElement)">${done?'✓ Completed today':'Mark as done'}</button>`;
+    cont.appendChild(card);
+  });
+}
+
+function toggleRitualFull(id, card) {
+  state.ritualsDone[id] = !state.ritualsDone[id];
+  saveState();
+  card.classList.toggle('done', !!state.ritualsDone[id]);
+  card.querySelector('.ritual-full-btn').textContent = state.ritualsDone[id]?'✓ Completed today':'Mark as done';
+  if(state.ritualsDone[id]) showToast('Ritual complete ✦');
+  updateRing();
+}
+
+// ═══════════════════════════════
+// READING
+// ═══════════════════════════════
+
+function renderReading() {
+  const cont = document.getElementById('reading-list');
+  cont.innerHTML = '';
+  BOOKS.forEach(b => {
+    const status = state.bookStatus[b.id] || 'none';
+    const card = document.createElement('div');
+    card.className = 'book-card';
+    card.innerHTML = `
+      <div class="book-status-row">
+        <div class="book-type">${b.type}</div>
+        <div class="book-status-btn">
+          <button class="bsb ${status==='want'?'active-want':''}" onclick="setBookStatus('${b.id}','want',this)">Want</button>
+          <button class="bsb ${status==='reading'?'active-reading':''}" onclick="setBookStatus('${b.id}','reading',this)">Reading</button>
+          <button class="bsb ${status==='done'?'active-done':''}" onclick="setBookStatus('${b.id}','done',this)">Done</button>
+        </div>
+      </div>
+      <div class="book-title">${b.title}</div>
+      <div class="book-author">${b.author}</div>
+      <div class="book-why">${b.why}</div>`;
+    cont.appendChild(card);
+  });
+}
+
+function setBookStatus(id, status, btn) {
+  const current = state.bookStatus[id]||'none';
+  state.bookStatus[id] = current===status ? 'none' : status;
+  saveState();
+  if(state.bookStatus[id]==='done') showToast('Book finished ✦');
+  if(state.bookStatus[id]==='reading') showToast('Happy reading ✦');
+  renderReading();
+}
+
+// ═══════════════════════════════
+// NORTH STAR MANTRAS
+// ═══════════════════════════════
+
+function renderMantras() {
+  const cont = document.getElementById('mantras-list');
+  if (!cont) return;
+  cont.innerHTML = '';
+  MANTRAS.forEach((m,i) => {
+    const el = document.createElement('div');
+    el.style.cssText = `padding:13px 16px;border-bottom:1px solid var(--ink3);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.95rem;color:var(--silver);line-height:1.5;`;
+    if (i===MANTRAS.length-1) el.style.borderBottom='none';
+    el.textContent = m;
+    cont.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════
+// JOURNAL
+// ═══════════════════════════════
+
+function renderJournal() {
+  const cont = document.getElementById('journal-entries');
+  cont.innerHTML = '';
+  const entries = [...(state.journalEntries||[])].reverse();
+  if (entries.length===0) {
+    cont.innerHTML = '<div class="empty-state">Your reflections will appear here. Start with what you noticed today.</div>';
+    return;
+  }
+  entries.forEach((e,ri) => {
+    const i = entries.length-1-ri;
+    const el = document.createElement('div');
+    el.className = 'journal-entry';
+    el.innerHTML = `
+      <div class="journal-entry-header"><div class="journal-entry-date">${e.date}</div><div class="journal-entry-module">${e.module}</div></div>
+      <div class="journal-entry-text">${e.text}</div>
+      <div class="journal-entry-del"><button class="del-btn" onclick="deleteJournalEntry(${i})">Delete</button></div>`;
+    cont.appendChild(el);
+  });
+}
+
+function saveJournalEntry() {
+  const input = document.getElementById('journal-input');
+  const module = document.getElementById('journal-module-select').value;
+  const text = input.value.trim();
+  if (!text) return;
+  const now = new Date();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const date = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+  if (!state.journalEntries) state.journalEntries=[];
+  state.journalEntries.push({date,module,text});
+  saveState();
+  input.value='';
+  showToast('Entry saved ✦');
+  renderJournal();
+}
+
+function deleteJournalEntry(i) {
+  if (confirm('Delete this entry?')) {
+    state.journalEntries.splice(i,1);
+    saveState();
+    renderJournal();
+  }
+}
+
+// ═══════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════
+
+function switchView(name, btn) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelector('.scroll-area').scrollTop=0;
+  if(name==='modules') renderModules();
+  else if(name==='rituals') renderRituals();
+  else if(name==='reading') renderReading();
+  else if(name==='north') renderMantras();
+  else if(name==='journal') renderJournal();
+  else if(name==='today') renderToday();
+}
+
+// ═══════════════════════════════
+// INIT
+// ═══════════════════════════════
+
+checkDailyReset();
+renderToday();
+</script>
+</body>
+</html>
